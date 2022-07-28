@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>253456688828-lsrdmlh1eod4g1smkksngeu93tom1h9b.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.253456688828-lsrdmlh1eod4g1smkksngeu93tom1h9b</string>
+	<key>API_KEY</key>
+	<string>AIzaSyA9XAgEr0-YFi4V3Ur7E5AmkQDWfUEnCNA</string>
+	<key>GCM_SENDER_ID</key>
+	<string>253456688828</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>SmartLaundry</string>
+	<key>PROJECT_ID</key>
+	<string>smartlaundry-29ec0</string>
+	<key>STORAGE_BUCKET</key>
+	<string>smartlaundry-29ec0.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:253456688828:ios:78ce7b207e1a079ec212b9</string>
+</dict>
+</plist>
