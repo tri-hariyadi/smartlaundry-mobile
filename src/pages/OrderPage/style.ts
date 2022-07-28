@@ -65,8 +65,8 @@ const style = StyleSheet.create({
   },
   imgSubService: {
     resizeMode: 'contain',
-    width: normalizeDimens(35),
-    height: normalizeDimens(35),
+    width: normalizeDimens(60),
+    height: normalizeDimens(60),
   },
   nameService: {
     fontFamily: customFont.primary[500],
