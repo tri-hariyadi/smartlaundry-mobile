@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, Animated, Platform, StatusBar } from 'react-native';
 import moment from 'moment';
 import 'moment/locale/id';
 import { connect, useDispatch } from 'react-redux';
@@ -18,6 +18,8 @@ import Token from '@utils/token';
 import { IResponseHttpService, NavigationProps } from '@utils/types';
 import colors from '@utils/colors';
 import useKeyboard from '@utils/useKeyboard';
+import { getData } from '@store/localStorage';
+import discountFormat from '@utils/discountFormat';
 import styles from './style';
 
 interface IProps {
@@ -42,6 +44,7 @@ interface IProps {
     createdAt: string;
     updatedAt: string;
     status: string;
+    isReviewed: boolean;
   }>;
   dataOrdersError: string | boolean | undefined;
   orderCart: {id_service: string};
@@ -50,6 +53,7 @@ interface IProps {
 const PastOrders: React.FC<NavigationProps & IProps> = ({
   navigation, dataOrders, dataOrdersError, orderCart,
 }) => {
+  const ios = Platform.OS === 'ios';
   const dispatch = useDispatch();
   const { top } = useSafeAreaInsets();
   const keyboard = useKeyboard();
@@ -57,6 +61,7 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
   const btModal = useRef<BottomModalProps>();
   const btModal2 = useRef<BottomModalProps>();
   const animatedStar = useRef(new Animated.Value(0)).current;
+  const [bg, setBg] = useState(colors.primary);
   const [serviceDetail, setServiceDetail] = useState<Partial<IResponseHttpService>>({loading: true});
   const [dataReview, setDataReview] = useState<any>('');
   const [starMask, setStarMask] = useState<{[key: string]: boolean}>({
@@ -82,18 +87,31 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
         sub_service: dataReview.sub_service.length > 0
           ? dataReview.sub_service.map((item: any) => item.name).join(', ')
           : '',
+        order_id: dataReview._id,
       };
       const response = await ServiceAct.addReview(param);
       if (response.status === 200) {
         btModal.current?.dismiss();
         setTimeout(() => {
-          showMessage({message: 'Berhasil memberikan ulasan', type: 'success'});
+          setBg('#5cb85c');
+          showMessage({message: 'Ulasan telah ditambahkan', type: 'success',
+            icon: 'success', duration: 3000, style: styles.flashMessage, onHide: () => setBg(colors.primary)});
         }, 400);
+        getDataOrders();
       }
       else
         showMessage({message: response.message as string, type: 'danger', position: 'bottom'});
     },
   });
+
+  const getDataOrders = async () => {
+    const tokenDecoded = await Token.tokenDecode();
+    const response = await OrderAct.getOrders(tokenDecoded.aud as string);
+    OrderAct.saveOrders(
+      response.result,
+      response.status !== 200 && response.message,
+    )(dispatch);
+  };
 
   const starStyle = {
     transform:[{scale: animatedStar}],
@@ -123,7 +141,11 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
       message: 'Belum bisa order lagi nih, tunggu orderan yang lain selesai dulu.',
     });
     btModal2.current?.show();
-    const response = await ServiceAct.getServicesById(idService, -6.242025515100212, 107.00061389711712);
+    const location = await getData('position');
+    const response = await ServiceAct.getServicesById(
+      idService,
+      ios ? -6.3005932 : location.lat,
+      ios ? 106.8428308 : location.lng);
     setServiceDetail(response);
     ServiceAct.saveDataService(response.result, response.message)(dispatch);
   };
@@ -176,6 +198,7 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
 
   return (
     <>
+      <StatusBar backgroundColor={bg} />
       <View style={styles.container}>
         <FlatList
           data={dataOrders.filter(({ status }) => status === '1')}
@@ -214,16 +237,24 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
                 </View>
               </View>
               <View style={styles.footerPastOrder}>
-                <TouchableOpacity style={styles.btnReview} onPress={() => {
-                  setDataReview(item);
-                  btModal.current?.show();
-                  spring(1000);
-                }}>
+                <TouchableOpacity style={styles.btnReview}
+                  activeOpacity={item.isReviewed ? 1 : 0.2}
+                  onPress={() => {
+                    if (!item.isReviewed) {
+                      setDataReview(item);
+                      btModal.current?.show();
+                      spring(1000);
+                    }
+                  }}>
                   <View style={styles.reviewWrapp}>
-                    <Text style={styles.reviewText}>Kasih ulasan, yuk</Text>
+                    {item.isReviewed && <Icon type={Icon.type.ai} name='star' size={25} color='#fbbf24' />}
+                    <Gap width={10} />
+                    <Text style={styles.reviewText}>
+                      {item.isReviewed ? 'Sudah dikasih ulasan' : 'Kasih ulasan, yuk'}
+                    </Text>
                     <Gap width={10} />
                     <View style={styles.reviewWrapp}>
-                      {Array.from(Array(5)).map((_item, idx) =>
+                      {!item.isReviewed && Array.from(Array(5)).map((_item, idx) =>
                         <Icon key={`star-${idx}`} type={Icon.type.ai} name='star' size={20} color='#e5e7eb' />)}
                     </View>
                   </View>
@@ -232,6 +263,7 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
             </Card>
           )}
           ItemSeparatorComponent={() => <Gap height={15} />}
+          ListFooterComponent={() => <Gap height={40} />}
           contentContainerStyle={styles.listContainerStyle}
           ListEmptyComponent={() => (
             <View style={styles.listEmptyContainer}>
@@ -310,14 +342,34 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
                   <Text style={[styles.textDiscount, styles.detailPromoText]}>
                     {serviceDetail.result.promo.diskon.typeDiskon === 'percent'
                       ? <Text>{serviceDetail.result.promo.diskon.valueDiskon}% off</Text>
-                      : <Text>{serviceDetail.result.promo.diskon.valueDiskon}k off</Text>
+                      : <Text>{discountFormat(String(serviceDetail.result.promo.diskon.valueDiskon))}k off</Text>
                     }
                   </Text>
                 </View>
               }
             </Text>
             <Gap height={6} />
-            <Text style={styles.detailTextDesc}>{serviceDetail.result.desc}</Text>
+            <Text style={styles.detailTextDesc}>{serviceDetail.result.desc}.</Text>
+            {serviceDetail.result.promo &&
+              <Text style={styles.detailTextDesc}>
+                <Text style={styles.detailTextDesc}>
+                  {
+                    serviceDetail.result.promo.diskon.typeDiskon === 'nominal'
+                      ? `Ada promo diskon hingga ${currencyFormat(String(
+                        serviceDetail.result.promo.diskon.valueDiskon))}`
+                      : `Ada promo diskon hingga ${serviceDetail.result.promo.diskon.valueDiskon}%`
+                  }
+                </Text>,
+                <Text style={styles.detailTextDesc}>
+                  {
+                    serviceDetail.result.promo.minOrder.typeMinOrder === 'weight'
+                      ? ` Dengan minimal order ${serviceDetail.result.promo.minOrder.valueMinOrder} Kg`
+                      : ` Dengan minimal order ${currencyFormat(String(
+                        serviceDetail.result.promo.minOrder.valueMinOrder))}`
+                  }
+                </Text>
+              </Text>
+            }
             <Gap height={6} />
             <Text style={styles.detailTextPrice}>
               {currencyFormat(String(serviceDetail.result.price))}

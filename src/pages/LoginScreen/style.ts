@@ -37,6 +37,29 @@ const style = StyleSheet.create({
     color: colors.border,
     textAlign: 'center',
   },
+  recoveryWrapp: {
+    alignItems: 'flex-end',
+    paddingRight: normalizeDimens(15),
+    marginTop: normalizeDimens(5),
+  },
+  textLinkStyle: {
+    fontFamily: customFont.primary[500],
+    fontSize: normalizeDimens(13),
+  },
+  forgotPassWrapp: {
+    marginHorizontal: normalizeDimens(18),
+  },
+  forgotPassTitle: {
+    fontFamily: customFont.primary[600],
+    fontSize: normalizeDimens(20),
+    color: colors.textPrimary,
+    marginBottom: normalizeDimens(13),
+  },
+  forgotPassText: {
+    fontFamily: customFont.primary[500],
+    fontSize: normalizeDimens(14),
+    color: colors.border,
+  },
 });
 
 export default style;

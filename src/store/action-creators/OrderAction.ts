@@ -88,7 +88,7 @@ class OrderAction {
     let response: Partial<IResponseHttpService> = {};
     const headers = await Promise.resolve(Constants.authHeader());
     await httpService.get(`/order/getanyorder/${idUser}`, { headers })
-      .then(async res => (response = {...res.data, loading: false}))
+      .then(res => (response = {...res.data, loading: false}))
       .catch((error) => {
         const err = error as AxiosError;
         if (err.response?.data) {

@@ -83,7 +83,7 @@ const style = StyleSheet.create({
     justifyContent: 'center',
   },
   iconVisibility: {
-    fontSize: normalizeDimens(21),
+    fontSize: normalizeDimens(20),
     color: colors.textPrimary,
   },
   iconWrapper: {
@@ -106,6 +106,7 @@ const style = StyleSheet.create({
   },
   exclamation: {
     color: colors.red.primary,
+    marginRight: normalizeDimens(8),
   },
   errorHelper: {
     fontSize: normalizeDimens(12),

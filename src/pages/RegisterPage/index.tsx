@@ -9,6 +9,7 @@ import { NavigationProps } from '@utils/types';
 import useKeyboard from '@utils/useKeyboard';
 import AuthAction from '@store/action-creators/AuthAction';
 import { Alert, AlertProps } from '@parts';
+import registerValidation from '@validates/registerValidation';
 import style from './style';
 
 const RegisterPage: React.FC<NavigationProps> = ({ navigation }) => {
@@ -25,6 +26,7 @@ const RegisterPage: React.FC<NavigationProps> = ({ navigation }) => {
       phoneNumber: '',
       password: '',
     },
+    validationSchema: registerValidation,
     onSubmit: async (v) => {
       const roles = await AuthAction.getRole();
       if (roles.status === 200 && roles.result.length) {

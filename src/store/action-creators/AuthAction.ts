@@ -140,6 +140,44 @@ class AuthAction {
     return response;
   }
 
+  public recoveryPassword = async (email: string) => {
+    let response: Partial<IResponseHttpService> = {};
+    await httpService.post('users/recoverypassword', {email}, { headers: Constants.API_HEADERS })
+      .then(async res => {
+        (response = {...res.data, loading: false});
+      })
+      .catch((error) => {
+        const err = error as AxiosError;
+        if (err?.response?.data) {
+          response = { result: null, message: (err.response.data as any).message,
+            status: err.response.status, loading: false };
+        } else {
+          response = { result: null, message: err.message || 'Oops, terjadi Kesalahan', status: 500, loading: false };
+        }
+      });
+    return response;
+  }
+
+  public updatePassword = async (password: string, id: string) => {
+    let response: Partial<IResponseHttpService> = {};
+    const headers = await Promise.resolve(Constants.authHeader());
+    await httpService.put(`users/security/${id}`, {password}, { headers })
+      .then(async res => {
+        if (res.data.status === 200) await Promise.resolve(token.removeToken());
+        (response = {...res.data, loading: false});
+      })
+      .catch((error) => {
+        const err = error as AxiosError;
+        if (err?.response?.data) {
+          response = { result: null, message: (err.response.data as any).message,
+            status: err.response.status, loading: false };
+        } else {
+          response = { result: null, message: err.message || 'Oops, terjadi Kesalahan', status: 500, loading: false };
+        }
+      });
+    return response;
+  }
+
 }
 
 export default new AuthAction();

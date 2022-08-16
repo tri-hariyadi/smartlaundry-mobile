@@ -105,7 +105,7 @@ const InputText: React.FC<FormikProps<any> & IProps> = ({
         dimens={32} background='transparent' icSize={21} onPress={onPressBtnIcon} />
     );
     if (touched[name] && errors[name]) return (
-      <Icon type={Icon.type.ai} name='exclamationcircle'
+      <Icon type={Icon.type.fa5} name='exclamation-circle'
         style={[style.iconVisibility, style.exclamation]} />
     );
     return null;

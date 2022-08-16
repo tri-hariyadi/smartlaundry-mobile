@@ -19,7 +19,7 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingVertical: normalizeDimens(16),
+    paddingVertical: normalizeDimens(20),
   },
   headerBtnWrapp: {
     flex: 1,
@@ -174,7 +174,7 @@ const style = StyleSheet.create({
     flexGrow: 1,
   },
   imgDetail: {
-    resizeMode: 'stretch',
+    resizeMode: 'cover',
     width: '100%',
     height: normalizeDimens(180),
     borderRadius: 15,
@@ -196,6 +196,7 @@ const style = StyleSheet.create({
     fontFamily: customFont.primary[400],
     fontSize: normalizeDimens(14),
     color: colors.border,
+    lineHeight: 24,
   },
   detailTextPrice: {
     fontFamily: customFont.primary[600],
@@ -232,6 +233,9 @@ const style = StyleSheet.create({
     fontFamily: customFont.primary[400],
     color: colors.border,
     marginTop: normalizeDimens(2),
+  },
+  flashMessage: {
+    paddingTop: Platform.OS === 'android' ? normalizeDimens(55) : normalizeDimens(35),
   },
 });
 

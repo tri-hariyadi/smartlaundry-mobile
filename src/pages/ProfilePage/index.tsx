@@ -17,6 +17,7 @@ import { RootState } from '@store/store';
 import normalizeDimens from '@utils/normalizeDimens';
 import { getData } from '@store/localStorage';
 import useKeyboard from '@utils/useKeyboard';
+import passwordValidation from '@validates/passwordValidation';
 import style from './style';
 
 type addressType = {
@@ -66,6 +67,37 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
       }
     },
   });
+  const formik2 = useFormik({
+    initialValues: {password: ''},
+    validationSchema: passwordValidation,
+    onSubmit: async (v) => {
+      const response = await AuthAction.updatePassword(v.password, user?._id as string);
+      if (response.status === 200) {
+        btModal.current.dismiss();
+        await Promise.resolve(AuthAction.resetAuthReducer()(dispatch));
+        navigation.removeListener('focus', fetchData);
+        alert.current?.showAlert({
+          type: 'success',
+          title: 'Success',
+          message: `${response.message}, silahkan login kembali dengan password baru`,
+          onDismiss: async () => {
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'LoginScreen' }],
+              }),
+            );
+          },
+        });
+      } else {
+        alert.current?.showAlert({
+          type: 'error',
+          title: 'Error',
+          message: response.message,
+        });
+      }
+    },
+  });
 
   const onBtnClick = (action: string) => {
     switch (action) {
@@ -94,6 +126,15 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
         formik.setFieldValue('fullName', user?.fullName);
         formik.setFieldValue('phoneNumber', user?.phoneNumber);
         formik.setFieldValue('email', user?.email);
+        setInfoItem(action);
+        btModal.current.show();
+        break;
+      case 'password':
+        setInfoItem(action);
+        formik2.resetForm();
+        btModal.current.show();
+        break;
+      case 'regulation':
         setInfoItem(action);
         btModal.current.show();
         break;
@@ -288,6 +329,80 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
             </View>
           </View>
         );
+      case 'password':
+        return (
+          <View style={[style.infoContainer, style.editContainer, !keyboard.isOpen && {paddingBottom: top}]}>
+            <Gap height={10} />
+            <Row align='center' style={style.editTitle}>
+              <ButtonIcon icType={Icon.type.mci} icName='arrow-left' icSize={22} dimens={35}
+                background='transparent' rippleColor='rgba(0,0,0,0.3)' onPress={btModal.current.dismiss} />
+              <Gap width={5} />
+              <Text style={style.infoTitle}>Ganti Password</Text>
+            </Row>
+            <Gap height={15} />
+            <InputText
+              {...formik2}
+              isFirst
+              externalRef={a}
+              secureTextEntry
+              name='password'
+              label='Password'
+              icType={Icon.type.mci}
+              icName='key'
+              onSubmitEditing={() => b.current?.focus()} />
+            <InputText
+              {...formik2}
+              externalRef={b}
+              blurOnSubmit secureTextEntry
+              name='confirmPassword'
+              label='Konfirmasi Password'
+              icType={Icon.type.mci}
+              icName='key'
+              returnKeyType='default'
+              icSize={23} />
+            <Gap height={25} />
+            <Button
+              text='Ganti Password'
+              icType={Icon.type.mci} icName='send'
+              isLoading={formik2.isSubmitting}
+              onPress={() => {
+                keyboard.dismiss();
+                formik2.handleSubmit();
+              }} />
+            <Gap height={20} />
+          </View>
+        );
+      case 'regulation':
+        return (
+          <View style={[style.infoContainer, {paddingBottom: top + normalizeDimens(30)}]}>
+            <Text style={style.infoTitle}>Syarat Dan Ketentuan</Text>
+            <Gap height={8} />
+            <Row align='flex-start' flexWrap='nowrap'>
+              <Gap width={2} />
+              <Text style={style.textItemInfo}>1.</Text>
+              <Gap width={13} />
+              <Text style={style.textItemInfo}>
+                {'Smart Laundry tidak bertanggung jawab untuk\nkain luntur atau berkerut karena sifat bahan'}
+              </Text>
+            </Row>
+            <Gap height={7} />
+            <Row align='flex-start' flexWrap='nowrap'>
+              <Text style={style.textItemInfo}>2.</Text>
+              <Gap width={10} />
+              <Text style={style.textItemInfo}>
+                {'Smart Laundry tidak bertanggung jawab jika ada\nbarang yang tertinggal atau uang pada order cucian'}
+              </Text>
+            </Row>
+            <Gap height={7} />
+            <Row align='flex-start' flexWrap='nowrap'>
+              <Text style={style.textItemInfo}>3.</Text>
+              <Gap width={10} />
+              <Text style={style.textItemInfo}>
+                Jika terdapat kendala dapat hubungi servis center kami
+              </Text>
+            </Row>
+          </View>
+        );
 
       default:
         return null;
@@ -349,6 +464,10 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
                 <Icon type={Icon.type.mi} name='location-on' color={colors.red.primary} size={25} />
                 <Text style={style.btnListText}>Alamat Saya</Text>
               </TouchableItem>
+              <TouchableItem onPress={() => onBtnClick('password')} styleWrapper={style.btnListWrapper}>
+                <Icon type={Icon.type.mci} name='key' color={colors.red.primary} size={25} />
+                <Text style={style.btnListText}>Ganti Password</Text>
+              </TouchableItem>
               <TouchableItem onPress={() => onBtnClick('about')} styleWrapper={style.btnListWrapper}>
                 <Icon type={Icon.type.io} name='people' color={colors.red.primary} size={25} />
                 <Text style={style.btnListText}>Tentang Kami</Text>
@@ -357,7 +476,7 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
                 <Icon type={Icon.type.ai} name='contacts' color={colors.red.primary} size={25} />
                 <Text style={style.btnListText}>Hubungi Kami</Text>
               </TouchableItem>
-              <TouchableItem onPress={() => onBtnClick('')} styleWrapper={style.btnListWrapper}>
+              <TouchableItem onPress={() => onBtnClick('regulation')} styleWrapper={style.btnListWrapper}>
                 <Icon type={Icon.type.mci} name='script-text' color={colors.red.primary} size={25} />
                 <Text style={style.btnListText}>Syarat dan Ketentuan</Text>
               </TouchableItem>

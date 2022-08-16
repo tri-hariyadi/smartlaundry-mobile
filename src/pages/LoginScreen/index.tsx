@@ -11,7 +11,7 @@ import { NavigationProps } from '@utils/types';
 import loginValidation from '@validates/loginValidation';
 import Token from '@utils/token';
 import AuthAction from '@store/action-creators/AuthAction';
-import { Alert, AlertProps } from '@parts';
+import { Alert, AlertProps, BottomModal, BottomModalProps } from '@parts';
 import { RootState } from '@store/store';
 import style from './style';
 
@@ -28,13 +28,14 @@ interface IProps {
 const LoginScreen: React.FC<NavigationProps & IProps> = ({ navigation, user }) => {
   const dispatch = useDispatch();
   const alert = useRef<AlertProps>();
+  const btModal = useRef<BottomModalProps>();
   const a = useRef<any>();
   const b = useRef<any>({ focus: () => null });
   const keyboard = useKeyboard();
   const formik = useFormik({
     initialValues:{
-      email: Platform.OS === 'ios' ? 'ronirama@gmail.com' : 'kahn@gmail.com',
-      password: Platform.OS === 'ios' ? 'ronirama1234' : 'kahn1234',
+      email: '',
+      password: '',
     },
     validationSchema: loginValidation,
     onSubmit: async (v) => {
@@ -43,6 +44,28 @@ const LoginScreen: React.FC<NavigationProps & IProps> = ({ navigation, user }) =
         Token.setToken(response.result); //ahmad1234,ronirama1234
         const tokenDecoded = await Token.tokenDecode();
         await AuthAction.getDataUser(tokenDecoded.aud as string)(dispatch);
+      } else {
+        alert.current?.showAlert({
+          type: 'error',
+          title: 'Error',
+          message: response.message,
+          dangerMode: true,
+          cancelText: 'OK',
+        });
+      }
+    },
+  });
+  const formik2 = useFormik({
+    initialValues:{ email: '' },
+    onSubmit: async (v) => {
+      const response = await AuthAction.recoveryPassword(v.email);
+      if (response.result && response.status === 200) {
+        btModal.current?.dismiss();
+        alert.current?.showAlert({
+          type: 'success',
+          title: 'Success',
+          message: response.message,
+        });
       } else {
         alert.current?.showAlert({
           type: 'error',
@@ -65,6 +88,7 @@ const LoginScreen: React.FC<NavigationProps & IProps> = ({ navigation, user }) =
 
   useLayoutEffect(() => {
     SystemNavigationBar.navigationShow();
+    SystemNavigationBar.setNavigationColor('#f3f4f6');
   }, []);
 
   return (
@@ -99,6 +123,7 @@ const LoginScreen: React.FC<NavigationProps & IProps> = ({ navigation, user }) =
                 icName='envelope'
                 name='email'
                 label='Email'
+                keyboardType='email-address'
                 onSubmitEditing={() => b.current?.focus()} />
               <InputText
                 {...formik}
@@ -109,6 +134,12 @@ const LoginScreen: React.FC<NavigationProps & IProps> = ({ navigation, user }) =
                 name='password'
                 label='Password'
                 returnKeyType='default' />
+              <View style={style.recoveryWrapp}>
+                <ButtonText
+                  textLinkStyle={style.textLinkStyle}
+                  link='Lupa password kamu?'
+                  onPress={() => btModal.current?.show()} />
+              </View>
               <Gap height={40} />
               <Button text='Login'
                 isLoading={formik.isSubmitting}
@@ -128,6 +159,33 @@ const LoginScreen: React.FC<NavigationProps & IProps> = ({ navigation, user }) =
           </ScrollView>
         </KeyboardAvoidingView>
         <Alert ref={alert} />
+        <BottomModal ref={btModal}>
+          <View style={style.forgotPassWrapp}>
+            <Text style={style.forgotPassTitle}>Forgot Password</Text>
+            <Text style={style.forgotPassText}>
+              {
+                'Masukkan email kamu untuk proses verifikasi,\nKami akan mengirimkan password baru ke email kamu.'
+              }
+            </Text>
+            <Gap height={15} />
+            <InputText
+              {...formik2}
+              blurOnSubmit
+              icType={Icon.type.fa}
+              icName='envelope'
+              name='email'
+              label='Email'
+              keyboardType='email-address'
+              returnKeyType='default' />
+            <Gap height={20} />
+            <Button
+              text='Submit'
+              icType={Icon.type.mci} icName='send'
+              isLoading={formik2.isSubmitting}
+              onPress={() => formik2.handleSubmit()} />
+            <Gap height={25} />
+          </View>
+        </BottomModal>
       </SafeAreaView>
     </>
   );

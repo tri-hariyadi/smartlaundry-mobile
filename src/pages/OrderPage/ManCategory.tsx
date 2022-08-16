@@ -9,7 +9,6 @@ import style from './style';
 
 const ManCategory: React.FC<OrderPageProps> = ({ route, service }) => {
   const { top } = useSafeAreaInsets();
-
   return (
     <>
       <View style={style.pageContainer}>

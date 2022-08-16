@@ -7,7 +7,7 @@ export const textDaftar = (isPress: boolean): ViewStyle | TextStyle => ({
   fontSize: normalizeDimens(14),
   fontFamily: customFont.primary[600],
   marginLeft: 8,
-  color: isPress ? colors.textPrimary : '#F4973E',
+  color: isPress ? colors.textPrimary : '#4F74DF',
 });
 
 const style = StyleSheet.create({

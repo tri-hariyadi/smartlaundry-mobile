@@ -23,6 +23,7 @@ interface StateType {
     createdAt: string;
     updatedAt: string;
     status: string;
+    isReviewed: boolean;
   }>
   dataOrdersError: boolean | string | undefined;
 

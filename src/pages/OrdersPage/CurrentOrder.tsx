@@ -25,12 +25,13 @@ interface IProps {
     createdAt: string;
     updatedAt: string;
     status: string;
+    isReviewed: boolean;
   }>;
   dataOrdersError: string | boolean | undefined;
 }
 
 const CurrentOrder: React.FC<NavigationProps & IProps> = ({
-  dataOrders, dataOrdersError, navigation,
+  dataOrdersError, navigation,
 }) => {
   const dispatch = useDispatch();
   const [refreshing, setRefreshing] = useState(false);
@@ -126,7 +127,7 @@ const CurrentOrder: React.FC<NavigationProps & IProps> = ({
                     <CardLoading count={2} loadingTextCount={3} heightLoadingText={12} />
                   </View>
                 )
-                : dataOrders.length <= 0 && !dataOrdersError
+                : currentOrder.result && currentOrder.result.length <= 0 && !dataOrdersError
                   ? <ErrorIndicator isEmpty errorMessage='Kamu belum order lagi nih, order yuk.' />
                   : <ErrorIndicator errorMessage={dataOrdersError as string} />
               }

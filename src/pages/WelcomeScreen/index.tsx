@@ -11,6 +11,8 @@ import useToken from '@utils/useToken';
 import Token from '@utils/token';
 import { RootState } from '@store/store';
 import AuthAction from '@store/action-creators/AuthAction';
+import getLocation from '@utils/getLocation';
+import { storeData } from '@store/localStorage';
 import style from './style';
 
 interface IProps {
@@ -35,12 +37,15 @@ const WelcomeScreen: React.FC<NavigationProps & IProps> = ({ navigation, user, u
       duration: 650,
       useNativeDriver: true,
     }).start();
-    checkToken();
+    setLocation();
+    setTimeout(() => {
+      checkToken();
+    }, 2000);
   }, []);
 
   const checkToken = async () => {
     try {
-      await token.then(async (res) => {
+      await token.then(async (res: { accessToken: any; refreshToken: any; }) => {
         if (res.accessToken && res.refreshToken) {
           const tokenDecoded = await Token.tokenDecode();
           await AuthAction.getDataUser(tokenDecoded.aud as string)(dispatch);
@@ -49,6 +54,13 @@ const WelcomeScreen: React.FC<NavigationProps & IProps> = ({ navigation, user, u
       });
     } catch (error) {
       navigation.replace('IntroScreen');
+    }
+  };
+
+  const setLocation = async () => {
+    const location = await getLocation();
+    if (location.position.lat && location.position.lng) {
+      await storeData('position', {lat: location.position.lat, lng: location.position.lng});
     }
   };
 
@@ -66,7 +78,7 @@ const WelcomeScreen: React.FC<NavigationProps & IProps> = ({ navigation, user, u
         });
         navigation.replace('IntroScreen');
       }
-    }, 3000);
+    }, 2000);
   };
 
   useEffect(() => {

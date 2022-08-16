@@ -163,7 +163,7 @@ const LaundryHome: React.FC<NavigationProps & IProps> = ({ navigation, user, use
     });
   };
 
-  const openGPS = async (latitude: number, longitude: number, label = 'MyLabel') => {
+  const openGPS = async (latitude: number, longitude: number, label = 'Ambil orderan') => {
     const tag = `${Platform.OS === 'ios' ? 'maps' : 'geo'}:0,0?q=`;
     const link = Platform.select({
       ios: `${tag}${label}@${latitude},${longitude}`,
@@ -307,7 +307,11 @@ const LaundryHome: React.FC<NavigationProps & IProps> = ({ navigation, user, use
             radius={normalizeDimens(15)}
             viewStyle={styles.card}
             containerViewStyle={[styles.cardContainer]}>
-            <TouchableItem onPress={() => openGPS(dataOrder.address?.lat, dataOrder.address?.long)}
+            <TouchableItem
+              onPress={() => openGPS(
+                dataOrder.address?.lat, dataOrder.address?.long,
+                `Ambil Orderan Dari ${dataOrder.id_customer?.fullName}`,
+              )}
               styleWrapper={styles.basketContainer}>
               <View style={styles.basketWrapper}>
                 <Row align='center' justify='space-between'>

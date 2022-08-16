@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { connect, useDispatch } from 'react-redux';
 import EventSource from 'react-native-sse';
@@ -65,6 +65,7 @@ const ReviewOrder: React.FC<IProps & NavigationProps> = ({ navigation, route, or
   };
 
   const getPrices = async () => {
+    const ios = Platform.OS === 'ios';
     const dataLaundry = await AuthAct.getUser(service.laundry?.user_id._id as string, true);
     if (dataLaundry.result && dataLaundry.status === 200) {
       const response = await OrderAct.calculatePrice({
@@ -76,8 +77,8 @@ const ReviewOrder: React.FC<IProps & NavigationProps> = ({ navigation, route, or
           long: dataLaundry.result.address.long,
         },
         custPosition: {
-          lat: values.lat,
-          long: values.long,
+          lat: ios ? -6.3005932 : values.lat,
+          long: ios ? 106.8428308 : values.long,
         },
       });
       setDataPrice(response);
@@ -162,6 +163,11 @@ const ReviewOrder: React.FC<IProps & NavigationProps> = ({ navigation, route, or
                     <Text style={style.textItem}>Jasa Aplikasi</Text>
                     <Text style={style.itemPrice}>{currencyFormat(String(dataPrice.result?.costApp || 0))}</Text>
                   </View>
+                  {dataPrice.result?.priceDiscount && <Gap height={15} />}
+                  {dataPrice.result?.priceDiscount && <View style={style.itemWrapper}>
+                    <Text style={style.textItem}>Diskon</Text>
+                    <Text style={style.itemPrice}>{currencyFormat(String(dataPrice.result.priceDiscount))}</Text>
+                  </View>}
                 </>
               }
             </View>

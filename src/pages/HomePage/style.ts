@@ -69,22 +69,17 @@ const style = StyleSheet.create({
     alignItems:  'center',
   },
   itemImg: {
-    resizeMode: 'stretch',
+    resizeMode: 'cover',
     width: normalizeDimens(100),
     height: '100%',
     borderRadius: 10,
   },
   itemContent: {
     flex: 1,
-    flexDirection: 'row',
+    // flexDirection: 'row',
     justifyContent: 'space-between',
     marginLeft: normalizeDimens(10),
-    paddingVertical: normalizeDimens(15),
-  },
-  itemTextWrapp: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: normalizeDimens(4),
+    paddingVertical: normalizeDimens(8),
   },
   itemText: {
     fontFamily: customFont.primary[500],
@@ -96,6 +91,12 @@ const style = StyleSheet.create({
   },
   itemTextPrice: {
     fontFamily: customFont.primary[700],
+  },
+  itemTextLaundry: {
+    fontFamily: customFont.primary[500],
+    fontSize: normalizeDimens(11),
+    flexWrap: 'wrap',
+    marginTop: -1,
   },
   discountWrapp: {
     backgroundColor: colors.red.primary,
@@ -124,9 +125,8 @@ const style = StyleSheet.create({
   btnOrder: {
     flex: 1,
     flexDirection:  'row',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    alignSelf: 'stretch',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginRight: normalizeDimens(5),
   },
 
@@ -137,7 +137,7 @@ const style = StyleSheet.create({
     flexGrow: 1,
   },
   imgDetail: {
-    resizeMode: 'stretch',
+    resizeMode: 'cover',
     width: '100%',
     height: normalizeDimens(180),
     borderRadius: 15,
@@ -159,6 +159,7 @@ const style = StyleSheet.create({
     fontFamily: customFont.primary[400],
     fontSize: normalizeDimens(14),
     color: colors.border,
+    lineHeight: 24,
   },
   detailTextPrice: {
     fontFamily: customFont.primary[600],
@@ -327,6 +328,22 @@ const style = StyleSheet.create({
   },
   rowBtnBack: {
     marginLeft: -normalizeDimens(10),
+  },
+
+  loadingWrapper: {
+    marginHorizontal: normalizeDimens(18),
+    marginBottom: normalizeDimens(40),
+  },
+  errorContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
+  errorText: {
+    fontFamily: customFont.primary[500],
+    fontSize: normalizeDimens(15),
+    color: colors.textPrimary,
+    textAlign:  'center',
   },
 });
 

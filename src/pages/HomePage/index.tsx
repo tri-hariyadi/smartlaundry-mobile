@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import moment from 'moment';
 import 'moment/locale/id';
-import { View, Text, StatusBar, Platform, Image, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StatusBar, Platform, Image, FlatList, RefreshControl } from 'react-native';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import NoImage from '@image/welcome3.png';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,20 +8,21 @@ import { connect, useDispatch } from 'react-redux';
 import { CompositeNavigationProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { Button, ButtonIcon, Gap, Icon, StatusBarApp } from '@components';
+import { ButtonIcon, Gap, Icon, StatusBarApp } from '@components';
 import colors from '@utils/colors';
-import { BottomModal, Card, CardLoading, ErrorIndicator, Header, Alert, AlertProps, Row } from '@parts';
+import { BottomModal, Card, CardLoading, ErrorIndicator, Header, Alert, AlertProps } from '@parts';
 import currencyFormat from '@utils/currencyFormat';
 import discountFormat from '@utils/discountFormat';
-import normalizeDimens from '@utils/normalizeDimens';
 import Token from '@utils/token';
 import { IResponseHttpService } from '@utils/types';
 import ServiceAct from '@action/ServiceAction';
 import OrderAction from '@store/action-creators/OrderAction';
 import { RootState } from '@store/store';
 import { MainBottomTabParamList, RootStackParamList } from '@routes';
-import getLocation from '@utils/getLocation';
+import { getData } from '@store/localStorage';
 import style from './style';
+import ServiceDetail from './ServiceDetail';
+import ServiceReview from './ServiceReview';
 
 
 type HomeScreenProp = CompositeNavigationProp<
@@ -44,15 +44,20 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
   const btModal = useRef<any>(null);
   const btModal2 = useRef<any>(null);
   const alert = useRef<AlertProps>(null);
+  const ios = Platform.OS === 'ios';
 
-  const getData = async () => {
+  const getDataServices = async () => {
+    const location = await getData('position');
+    const response = await ServiceAct.getServices(
+      ios ? -6.3005932 : location.lat,
+      ios ? 106.8428308 : location.lng);
+    setDataService(response);
+  };
+
+  const getStatusOrder = async () => {
     const tokenDecoded = await Token.tokenDecode();
-    const location = await getLocation();
-    const response = await ServiceAct.getServices(location.position.lat, location.position.lng);
-    // const response = await ServiceAct.getServices(-6.303437304776969, 106.84429944363697);
     const getAnyOrder = await OrderAction.getAnyOrder(tokenDecoded.aud as string);
     if (getAnyOrder.result) setAnyOrder(getAnyOrder.result.anyorder);
-    setDataService(response);
   };
 
   useEffect(() => {
@@ -60,7 +65,10 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
   }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', async () => getData());
+    const unsubscribe = navigation.addListener('focus', async () => {
+      getDataServices();
+      getStatusOrder();
+    });
     const onBlur = navigation.addListener('blur', () => setDataService({loading: true}));
 
     return () => {
@@ -72,7 +80,8 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
   const onRefresh = React.useCallback(async () => {
     setDataService({loading: true});
     setRefreshing(true);
-    await getData();
+    await getDataServices();
+    await getStatusOrder();
     setRefreshing(false);
   }, []);
 
@@ -91,7 +100,11 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
       message: 'Belum bisa order lagi nih, tunggu orderan yang lain selesai dulu.',
     });
     btModal.current.show();
-    const response = await ServiceAct.getServicesById(idService, -6.242025515100212, 107.00061389711712);
+    const location = await getData('position');
+    const response = await ServiceAct.getServicesById(
+      idService,
+      ios ? -6.3005932 : location.lat,
+      ios ? 106.8428308 : location.lng);
     setServiceDetail(response);
     ServiceAct.saveDataService(response.result, response.message)(dispatch);
   };
@@ -185,31 +198,25 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
                   }
                   <View style={style.itemContent}>
                     <View>
-                      <View style={style.itemTextWrapp}>
-                        <Icon type={Icon.type.mci} name='washing-machine' size={normalizeDimens(13)} />
-                        <Text style={[style.itemText, style.itemTextPrice]}>{item.name}</Text>
-                      </View>
-                      <View style={style.itemTextWrapp}>
-                        <Icon type={Icon.type.fa5} name='money-bill-wave' size={normalizeDimens(11)} />
-                        <Text style={[style.itemText, style.itemTextPrice]}>{currencyFormat(String(item.price))}</Text>
-                      </View>
-                      <View style={style.itemTextWrapp}>
-                        <Icon type={Icon.type.mi} name='my-location' size={normalizeDimens(13)} />
-                        <Text style={style.itemText}>{item.distance} km</Text>
-                      </View>
+                      <Text style={style.itemText}>{item.distance} km</Text>
+                      <Gap height={7} />
+                      <Text style={[style.itemText, style.itemTextPrice]}>{item.name}</Text>
+                      <Text style={[style.itemText, style.itemTextLaundry]}>
+                        {item.laundry}, {item.address.slice(0, 45)}{item.address.length > 45 ? '....' : ''}
+                      </Text>
                     </View>
+                    <Gap height={13} />
                     <View style={style.btnOrder}>
-                      <View>
-                        <ButtonIcon
-                          text='Yuk Order'
-                          icStyle={style.icStyle}
-                          icType={Icon.type.mi}
-                          icSize={15}
-                          icName='shopping-cart'
-                          background='#E36F00'
-                          onPress={() => getDetailService(item._id)}
-                        />
-                      </View>
+                      <Text style={[style.itemText, style.itemTextPrice]}>{currencyFormat(String(item.price))}</Text>
+                      <ButtonIcon
+                        text='Yuk Order'
+                        icStyle={style.icStyle}
+                        icType={Icon.type.mi}
+                        icSize={15}
+                        icName='shopping-cart'
+                        background='#E36F00'
+                        onPress={() => getDetailService(item._id)}
+                      />
                     </View>
                   </View>
                 </View>
@@ -240,77 +247,12 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
       <BottomModal ref={btModal}
         textDisabled='Tutup'
         isDisabled={serviceDetail.result && !serviceDetail.result.laundry.status}>
-        {serviceDetail.result &&
-          <View style={[style.detailContainer, {marginBottom: top}]}>
-            <Image style={style.imgDetail}
-              source={serviceDetail.result.banner[0] ? {uri: serviceDetail.result.banner[0]} : NoImage} />
-            <Gap height={20} />
-            <Text style={style.detailTitle}>
-              {serviceDetail.result.name}
-              <Gap width={5} />
-              {serviceDetail.result.promo &&
-                <View style={style.detailPromoWrapp}>
-                  <Icon type={Icon.type.mci} name='brightness-percent' color={colors.red.primary}
-                    size={normalizeDimens(16)} />
-                  <Gap width={3} />
-                  <Text style={[style.textDiscount, style.detailPromoText]}>
-                    {serviceDetail.result.promo.diskon.typeDiskon === 'percent'
-                      ? <Text>{serviceDetail.result.promo.diskon.valueDiskon}% off</Text>
-                      : <Text>{serviceDetail.result.promo.diskon.valueDiskon}k off</Text>
-                    }
-                  </Text>
-                </View>
-              }
-            </Text>
-            <Gap height={6} />
-            <Text style={style.detailTextDesc}>{serviceDetail.result.desc}</Text>
-            <Gap height={6} />
-            <Text style={style.detailTextPrice}>
-              {currencyFormat(String(serviceDetail.result.price))}
-              {serviceDetail.result.quantityType === 'kg' ? '/kg' : ''}
-              <Gap width={5} />
-              <Text style={[style.detailTextDesc, style.detailPrice]}>
-                {serviceDetail.result.quantityType === 'kg'
-                  ? '(timbang di tempat oleh kurir)' : '(harga sesuai subservice)'}
-              </Text>
-            </Text>
-            <Gap height={20} />
-            <TouchableOpacity
-              activeOpacity={serviceDetail.result.ratingAverage ? 0.25 : 1}
-              onPress={serviceDetail.result.ratingAverage ? getReview : undefined}
-              style={style.detailLaundryWrapp}>
-              <View style={style.detailLaundryHeader}>
-                <Text style={style.detailTextLaundryName}>{serviceDetail.result.laundry.name}</Text>
-                {serviceDetail.result.ratingAverage && <Text style={style.textCekUlasan}>Cek Ulasan</Text>}
-              </View>
-              <Gap height={8} />
-              <View>
-                <View style={style.detailInfoWrapp}>
-                  <Icon type={Icon.type.mi} name='my-location' size={normalizeDimens(16)} />
-                  <Text style={style.itemText}>
-                    {serviceDetail.result.distance} km
-                    <Gap width={5} />
-                    <Text style={style.detailTextDesc}>
-                      ({serviceDetail.result.laundry.user_id.address.street})
-                    </Text>
-                  </Text>
-                </View>
-                <Gap height={8} />
-                <View style={style.detailInfoWrapp}>
-                  <Icon type={Icon.type.ai} name='star' size={normalizeDimens(16)} color='#fbbf24' />
-                  <Text style={style.itemText}>
-                    {serviceDetail.result.ratingAverage ?
-                      `${serviceDetail.result.ratingAverage} ratings` : 'Belum ada rating'}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-            <Gap height={25} />
-            <Button text='Order Sekarang'
-              onPress={() => navigateToOrder(serviceDetail.result)}
-            />
-          </View>
-        }
+        <ServiceDetail
+          serviceDetail={serviceDetail}
+          top={top}
+          getReview={getReview}
+          navigateToOrder={navigateToOrder}
+        />
       </BottomModal>
       <BottomModal ref={btModal2}
         onTouchOutside={() => {
@@ -319,70 +261,13 @@ const HomePage: React.FC<{orderCart:{id_service: string}}> = ({
             btModal.current.show();
           }, 400);
         }}>
-        {reviews.result && reviews.result.length &&
-          <View style={[style.reviewsContainer, {marginBottom: top}]}>
-            <View style={style.starAverage}>
-              <View style={style.ratingAverageWrapp}>
-                <Text style={style.txtRatingAverage}>{serviceDetail.result.ratingAverage}</Text>
-                <Gap width={6} />
-                <Icon type={Icon.type.ai} name='star' size={23} color='#fbbf24' />
-              </View>
-              <Gap width={6} />
-              <Text style={style.reviewCreated}>
-                {reviews.result.length > 600 ? '600+' : reviews.result.length} rating/ulasan
-              </Text>
-            </View>
-            <Gap height={10} />
-            <Row align='center' style={style.rowBtnBack}>
-              <ButtonIcon icType={Icon.type.mci} icName='arrow-left' icSize={22} dimens={35}
-                background='transparent' rippleColor='rgba(0,0,0,0.3)' onPress={() => {
-                  btModal2.current.dismiss();
-                  setTimeout(() => {
-                    btModal.current.show();
-                  }, 400);
-                }} />
-              <Gap width={6} />
-              <Text style={style.allReviews}>Semua Ulasan</Text>
-            </Row>
-            <Gap height={20} />
-            {reviews.result.map((item: any, idx: number) => (
-              <View key={`Reviews-${idx}`}>
-                {idx !== 0 && <Gap height={15} />}
-                <View style={style.headerReviews}>
-                  <View style={style.fakeAfatar}>
-                    <Text style={style.fakeAfatarText}>
-                      {`${item.name.split(' ').map((word: string) => word[0]).join('')}`}
-                    </Text>
-                  </View>
-                  <View style={style.contentContainer}>
-                    <Text style={style.nameReviewer}>{item.name}</Text>
-                    <Text style={style.reviewCreated}>{moment(item.createdAt).format('DD MMMM yyy')}</Text>
-                  </View>
-                  <View style={style.starWrapper}>
-                    <Icon type={Icon.type.ai} name='star' size={17} color='#f43f5e' />
-                    <Gap width={5} />
-                    <Text style={[style.nameReviewer, style.textStar]}>{item.rating}</Text>
-                  </View>
-                </View>
-                <Gap height={10} />
-                <View style={style.itemReviewsWrapp}>
-                  <View style={style.beforeBulb} />
-                  <View style={style.commentTextWrapp}>
-                    <Text style={style.commentText}>{item.comment}</Text>
-                    <Gap height={7} />
-                    <View style={style.ratingAverageWrapp}>
-                      <Icon type={Icon.type.mci} name='washing-machine' size={16} color='#333' />
-                      <Gap width={6} />
-                      <Text style={style.reviewCreated}>
-                        {item.sub_service ? item.sub_service : item.id_service.name}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-        }
+        <ServiceReview
+          reviews={reviews}
+          serviceDetail={serviceDetail}
+          top={top}
+          btModal={btModal}
+          btModal2={btModal2}
+        />
       </BottomModal>
     </>
   );
