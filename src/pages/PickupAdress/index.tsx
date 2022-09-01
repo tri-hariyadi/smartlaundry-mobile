@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Animated } from 'react-native';
+import { View, Text, Animated, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFormik } from 'formik';
 import { connect } from 'react-redux';
@@ -52,6 +52,7 @@ const PickupAdress: React.FC<NavigationProps & IProps> = ({ navigation, service,
   const alert = useRef<AlertProps>(null);
   const currentAddress = useRef<any>(null);
   const warningAnimated = useRef(new Animated.Value(0)).current;
+  const ios = Platform.OS === 'ios';
 
   const formik = useFormik({
     initialValues:{
@@ -125,10 +126,12 @@ const PickupAdress: React.FC<NavigationProps & IProps> = ({ navigation, service,
             getCurrentLocation().then((res) => {
               alert.current?.hideAlert();
               if (res.formattedAddress) {
-                currentAddress.current = res;
-                formik.setFieldValue('address', res.formattedAddress);
-                formik.setFieldValue('lat', res.position.lat);
-                formik.setFieldValue('long', res.position.lng);
+                const tempRes = {...res, position: {lat: -6.3005932, lng: 106.8428308 }};
+                const newRes = ios ? tempRes : res;
+                currentAddress.current = newRes;
+                formik.setFieldValue('address', newRes.formattedAddress);
+                formik.setFieldValue('lat', newRes.position.lat);
+                formik.setFieldValue('long', newRes.position.lng);
               } else {
                 alert.current?.showAlert({
                   type: 'error',

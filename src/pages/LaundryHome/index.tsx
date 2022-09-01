@@ -219,7 +219,7 @@ const LaundryHome: React.FC<NavigationProps & IProps> = ({ navigation, user, use
   }, []);
 
   useEffect(() => {
-    if (currentOrder.result && currentOrder.result.length && Object.keys(dataOrder).length)
+    if (currentOrder.result && currentOrder.result.length && dataOrder && Object.keys(dataOrder).length)
       setDataOrder((v: any) => currentOrder.result.filter((item: any) => item._id === v._id)[0]);
   }, [JSON.stringify(currentOrder)]);
 
@@ -262,7 +262,7 @@ const LaundryHome: React.FC<NavigationProps & IProps> = ({ navigation, user, use
               </View>
             </View>
           </Marker>
-          {Object.keys(dataOrder).length > 0 &&
+          {dataOrder && Object.keys(dataOrder).length > 0 &&
             <Marker
               coordinate={{
                 latitude: dataOrder.address?.lat || 0,

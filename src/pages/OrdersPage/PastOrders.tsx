@@ -216,7 +216,7 @@ const PastOrders: React.FC<NavigationProps & IProps> = ({
                 <View style={styles.descPastOrder}>
                   <Text style={styles.title}>{item.service.laundry.name}</Text>
                   <Text style={styles.titleDesc}>
-                    {moment(item.createdAt).format('dddd, DD MMMM YYYY')} .{' '}
+                    {moment(item.createdAt).utc().format('dddd, DD MMMM YYYY')} .{' '}
                     <Text style={styles.textDone}>Selesai</Text>
                   </Text>
                   <Gap height={4} />

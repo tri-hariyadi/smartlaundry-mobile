@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import moment from 'moment';
+import 'moment/locale/id';
 import Error from '@image/error.svg';
 import { ButtonIcon, Gap, Icon } from '@components';
 import { CardLoading, Row } from '@parts';
@@ -72,7 +73,7 @@ const ServiceReview: React.FC<IProps> = ({ reviews, serviceDetail, top, btModal,
             </View>
             <View style={style.contentContainer}>
               <Text style={style.nameReviewer}>{item.name}</Text>
-              <Text style={style.reviewCreated}>{moment(item.createdAt).format('DD MMMM yyy')}</Text>
+              <Text style={style.reviewCreated}>{moment(item.createdAt).utc().format('DD MMMM yyy')}</Text>
             </View>
             <View style={style.starWrapper}>
               <Icon type={Icon.type.ai} name='star' size={17} color='#f43f5e' />

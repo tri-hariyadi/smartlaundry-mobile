@@ -52,7 +52,7 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
   const b = useRef<any>({ focus: () => null });
   const c = useRef<any>({ focus: () => null });
   const [infoItem, setInfoItem] = useState('');
-  // const [region, setRegion] = useState({latitudeDelta: 0.0,longitudeDelta: 0.0041});
+  const [region, setRegion] = useState({latitudeDelta: 0.0,longitudeDelta: 0.0041});
   const formik = useFormik({
     initialValues: {fullName: '', phoneNumber: '', email: '', role: ''},
     onSubmit: async (values) => {
@@ -75,7 +75,7 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
       if (response.status === 200) {
         btModal.current.dismiss();
         await Promise.resolve(AuthAction.resetAuthReducer()(dispatch));
-        navigation.removeListener('focus', fetchData);
+        // navigation.removeListener('focus', fetchData);
         alert.current?.showAlert({
           type: 'success',
           title: 'Success',
@@ -160,7 +160,7 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
     });
     if (response.status === 200) {
       await Promise.resolve(AuthAction.resetAuthReducer()(dispatch));
-      navigation.removeListener('focus', fetchData);
+      // navigation.removeListener('focus', fetchData);
       alert.current?.hideAlert();
       alert.current?.showAlert({
         title: 'Success',
@@ -192,9 +192,9 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
   const renderModalItem = (type: string) => {
     switch (type) {
       case 'address':
-        // setTimeout(() => {
-        //   setRegion({latitudeDelta: 0,longitudeDelta: 0.0080});
-        // }, 400);
+        setTimeout(() => {
+          setRegion({latitudeDelta: 0,longitudeDelta: 0.0041});
+        }, 400);
         return (
           <View style={[style.infoContainer, {marginBottom: top}]}>
             {address.current
@@ -217,7 +217,8 @@ const ProfilePage: React.FC<NavigationProps & IProps> = ({ navigation, user, use
                       provider={PROVIDER_GOOGLE}
                       style={style.map}
                       region={{
-                        latitudeDelta: 0,longitudeDelta: 0.0080,
+                        // latitudeDelta: 0,longitudeDelta: 0.0080,
+                        latitudeDelta: region.latitudeDelta,longitudeDelta: region.longitudeDelta,
                         latitude: address.current.lat,
                         longitude: address.current.long,
                       }}>

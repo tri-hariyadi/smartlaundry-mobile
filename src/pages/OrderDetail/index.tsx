@@ -82,7 +82,7 @@ const OrderDetail: React.FC<NavigationProps> = ({ navigation, route }) => {
         duration: 1000,
         useNativeDriver: false,
       }).start();
-    }, 2000);
+    }, 2500);
   }, []);
 
   if (dataOrder.loading) return (
